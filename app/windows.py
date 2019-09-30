@@ -102,9 +102,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if self._config['labels']:
             self.uniqLabelList.addItems(self._config['labels'])
             self.uniqLabelList.sortItems()
-        self.label_dock = QtWidgets.QDockWidget(u'Label List', self)
-        self.label_dock.setObjectName(u'Label List')
-        self.label_dock.setWidget(self.uniqLabelList)
 
         self.fileSearch = QtWidgets.QLineEdit()
         self.fileSearch.setPlaceholderText('Search Filename')
@@ -149,7 +146,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(scrollArea)
 
         features = QtWidgets.QDockWidget.DockWidgetFeatures()
-        for dock in ['flag_dock', 'label_dock', 'shape_dock', 'file_dock']:
+        for dock in ['flag_dock', 'shape_dock', 'file_dock']:
             if self._config[dock]['closable']:
                 features = features | QtWidgets.QDockWidget.DockWidgetClosable
             if self._config[dock]['floatable']:
@@ -161,7 +158,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 getattr(self, dock).setVisible(False)
 
         self.addDockWidget(Qt.RightDockWidgetArea, self.flag_dock)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.label_dock)
         self.addDockWidget(Qt.RightDockWidgetArea, self.shape_dock)
         self.addDockWidget(Qt.RightDockWidgetArea, self.file_dock)
 
@@ -483,7 +479,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.menus.view,
             (
                 self.flag_dock.toggleViewAction(),
-                self.label_dock.toggleViewAction(),
                 self.shape_dock.toggleViewAction(),
                 self.file_dock.toggleViewAction(),
                 None,
@@ -903,6 +898,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.labelDialog.addLabelHistory(item.text())
         for action in self.actions.onShapesPresent:
             action.setEnabled(True)
+
+    def addLabelToImg(self, shape):
+        x_min, y_min = shape.points[0].x(), shape.points[0].y()
+        x_max, y_max = shape.points[1].x(), shape.points[1].y()
+        log.info(shape.label, x_min, x_max, y_min, y_max)
 
     def remLabel(self, shape):
         item = self.labelList.get_item_from_shape(shape)
