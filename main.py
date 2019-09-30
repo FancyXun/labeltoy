@@ -133,8 +133,8 @@ def _main():
 
     if not config['labels'] and config['validate_label']:
         log.error('--labels must be specified with --validatelabel or '
-                     'validate_label: true in the config file '
-                     '(ex. ~/.labelmerc).')
+                  'validate_label: true in the config file '
+                  '(ex. ~/.labelmerc).')
         sys.exit(1)
 
     output_file = None
