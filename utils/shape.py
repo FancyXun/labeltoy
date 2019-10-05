@@ -77,7 +77,7 @@ def shapes_to_label(img_shape, shapes, label_name_to_value, type='class'):
 
 def labelme_shapes_to_label(img_shape, shapes):
     log.warn('labelme_shapes_to_label is deprecated, so please use '
-                'shapes_to_label.')
+             'shapes_to_label.')
 
     label_name_to_value = {'_background_': 0}
     for shape in shapes:
@@ -96,12 +96,12 @@ def masks_to_bboxes(masks):
     if masks.ndim != 3:
         raise ValueError(
             'masks.ndim must be 3, but it is {}'
-            .format(masks.ndim)
+                .format(masks.ndim)
         )
     if masks.dtype != bool:
         raise ValueError(
             'masks.dtype must be bool type, but it is {}'
-            .format(masks.dtype)
+                .format(masks.dtype)
         )
     bboxes = []
     for mask in masks:
@@ -110,3 +110,8 @@ def masks_to_bboxes(masks):
         bboxes.append((y1, x1, y2, x2))
     bboxes = np.asarray(bboxes, dtype=np.float32)
     return bboxes
+
+
+
+
+

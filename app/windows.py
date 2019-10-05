@@ -28,6 +28,9 @@ from widgets import LabelDialog
 from widgets import LabelQListWidget
 from widgets import ToolBar
 from widgets import ZoomWidget
+from PyQt5.QtGui import QPainter,QFont
+from PyQt5.QtCore import QRectF
+
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -58,6 +61,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Whether we need to save or not.
         self.dirty = False
+
+        self.alter = None
+
+        self.neighbours = dict()
+
+
+        self.boxes = []
+
+        self.labels = []
+
 
         self._noSelectionSlot = False
 
@@ -898,15 +911,107 @@ class MainWindow(QtWidgets.QMainWindow):
         self.labelDialog.addLabelHistory(item.text())
         for action in self.actions.onShapesPresent:
             action.setEnabled(True)
+        # add label to Img
+        self.addLabelToImg(shape)
+        self.add_box(shape)
 
-    def addLabelToImg(self, shape):
+    def add_box(self,shape):
+        x_min, y_min, w, h = self.get_label_box(shape)
+        box1 = (y_min,x_min,y_min+h,x_min+w)
+        boxes_len = len(self.boxes)
+        # tuple_id_shape = (boxes_len,shape)
+        self.neighbours[boxes_len] = []
+        for index,box in enumerate(self.boxes):
+            iou = self.compute_iou(box1,box)
+            if iou >0:
+                self.neighbours[index].append((boxes_len,shape))
+                self.neighbours[boxes_len].append((index,self.labels[index]))
+        self.boxes.append(box1)
+        self.labels.append(shape)
+
+    @staticmethod
+    def compute_iou(rec1, rec2):
+        """
+        computing IoU
+        :param rec1: (y0, x0, y1, x1), which reflects
+                (top, left, bottom, right)
+        :param rec2: (y0, x0, y1, x1)
+        :return: scala value of IoU
+        """
+        # computing area of each rectangles
+        S_rec1 = (rec1[2] - rec1[0]) * (rec1[3] - rec1[1])
+        S_rec2 = (rec2[2] - rec2[0]) * (rec2[3] - rec2[1])
+
+        # computing the sum_area
+        sum_area = S_rec1 + S_rec2
+
+        # find the each edge of intersect rectangle
+        left_line = max(rec1[1], rec2[1])
+        right_line = min(rec1[3], rec2[3])
+        top_line = max(rec1[0], rec2[0])
+        bottom_line = min(rec1[2], rec2[2])
+
+        # judge if there is an intersect
+        if left_line >= right_line or top_line >= bottom_line:
+            return 0
+        else:
+            intersect = (right_line - left_line) * (bottom_line - top_line)
+            return (intersect / (sum_area - intersect)) * 1.0
+
+
+    def addLabelToImg(self, shape,p_box = 0):
+        if p_box:
+            p_box = p_box
+        else:
+            p_box = QPainter(self.canvas.pixmap)
+        x_min, y_min, w, h = self.get_label_box(shape)
+        font = QFont()
+        font.setPointSize(h)
+        p_box.setFont(font)
+        q_rectf = QRectF(x_min, y_min, w, h)
+        p_box.drawRect(q_rectf)
+        p_box.drawText(q_rectf, Qt.AlignCenter | Qt.AlignTop, shape.label)
+
+    def get_label_box(self,shape):
         x_min, y_min = shape.points[0].x(), shape.points[0].y()
         x_max, y_max = shape.points[1].x(), shape.points[1].y()
-        log.info(shape.label, x_min, x_max, y_min, y_max)
+        w,h = x_max-x_min,y_max-y_min
+        x_min = x_min + self.alter[0] * self.alter[2]
+        y_min = y_min + self.alter[1] * self.alter[3]
+        return x_min,y_min,w,h
+
+
 
     def remLabel(self, shape):
         item = self.labelList.get_item_from_shape(shape)
         self.labelList.takeItem(self.labelList.row(item))
+        self.remove_shape(shape)
+
+    def remove_shape(self,shape):
+        p_box = QPainter(self.canvas.pixmap)
+        x_min, y_min, w, h = self.get_label_box(shape)
+        q_rectf = QRectF(x_min, y_min, w * 1.01, h * 1.01)
+        p_box.eraseRect(q_rectf)
+        box1 = (y_min, x_min, y_min + h, x_min + w)
+        box1_index =-1
+        for index,i in enumerate(self.boxes):
+            if i == box1:
+                box1_index = index
+                break
+        neighbours = self.neighbours.copy()
+        for key,values in neighbours.items():
+            for value in values:
+                if value[0] == box1_index:
+                    self.neighbours[key].remove(value)
+        # for i in self.neighbours[box1_index]:
+        #     x_min, y_min, w, h = self.get_label_box(i)
+        #     # todo cant clean
+        #     q_rectf = QRectF(x_min, y_min, w, h)
+        #     p_box.eraseRect(q_rectf)
+        # for action in self.actions.onShapesPresent:
+        #     action.setEnabled(True)
+        for i in self.neighbours[box1_index]:
+            self.addLabelToImg(i[1],p_box=p_box)
 
     def loadShapes(self, shapes, replace=True):
         for shape in shapes:
@@ -1132,18 +1237,21 @@ class MainWindow(QtWidgets.QMainWindow):
                     % (e, label_file))
                 self.status("Error reading %s" % label_file)
                 return False
+            # don't use imageData,reload image
             self.imageData = self.labelFile.imageData
             self.imagePath = osp.join(
                 osp.dirname(label_file),
                 self.labelFile.imagePath,
             )
+            if self.imagePath:
+                self.imageData, self.alter = LabelFile.load_image_file(self.imagePath)
             if self.labelFile.lineColor is not None:
                 self.lineColor = QtGui.QColor(*self.labelFile.lineColor)
             if self.labelFile.fillColor is not None:
                 self.fillColor = QtGui.QColor(*self.labelFile.fillColor)
             self.otherData = self.labelFile.otherData
         else:
-            self.imageData = LabelFile.load_image_file(filename)
+            self.imageData, self.alter = LabelFile.load_image_file(filename)
             if self.imageData:
                 self.imagePath = filename
             self.labelFile = None

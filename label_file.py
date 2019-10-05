@@ -38,8 +38,10 @@ class LabelFile(object):
         img_w, img_h = image_pil.size
         if img_w > img_h:
             background = PIL.Image.new('RGB', (img_w, img_h * 2), (255, 255, 255))
+            alter = (img_w, img_h,0,1)
         else:
             background = PIL.Image.new('RGB', (img_w * 2, img_h), (255, 255, 255))
+            alter = (img_w, img_h,1,0)
         offset = (0, 0)
         background.paste(image_pil, offset)
         image_pil = background
@@ -56,7 +58,7 @@ class LabelFile(object):
                 format = 'PNG'
             image_pil.save(f, format=format)
             f.seek(0)
-            return f.read()
+            return f.read(),alter
 
     def load(self, filename):
         keys = [
