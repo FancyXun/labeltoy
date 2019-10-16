@@ -28,9 +28,8 @@ from widgets import LabelDialog
 from widgets import LabelQListWidget
 from widgets import ToolBar
 from widgets import ZoomWidget
-from PyQt5.QtGui import QPainter,QFont
+from PyQt5.QtGui import QPainter, QFont, QColor, QPen
 from PyQt5.QtCore import QRectF
-
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -66,11 +65,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.neighbours = dict()
 
-
         self.boxes = []
 
         self.labels = []
-
 
         self._noSelectionSlot = False
 
@@ -859,6 +856,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.uniqLabelList.findItems(text, Qt.MatchExactly):
             self.uniqLabelList.addItem(text)
             self.uniqLabelList.sortItems()
+        self.remove_shape(self.canvas.selectedShape)
+        self.addLabel(self.canvas.selectedShape)
 
     def fileSearchChanged(self):
         self.importDirImages(
@@ -915,17 +914,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addLabelToImg(shape)
         self.add_box(shape)
 
-    def add_box(self,shape):
+    def add_box(self, shape):
         x_min, y_min, w, h = self.get_label_box(shape)
-        box1 = (y_min,x_min,y_min+h,x_min+w)
+        box1 = (y_min, x_min, y_min + h, x_min + w)
         boxes_len = len(self.boxes)
         # tuple_id_shape = (boxes_len,shape)
         self.neighbours[boxes_len] = []
-        for index,box in enumerate(self.boxes):
-            iou = self.compute_iou(box1,box)
-            if iou >0:
-                self.neighbours[index].append((boxes_len,shape))
-                self.neighbours[boxes_len].append((index,self.labels[index]))
+        for index, box in enumerate(self.boxes):
+            iou = self.compute_iou(box1, box)
+            if iou > 0:
+                self.neighbours[index].append((boxes_len, shape))
+                self.neighbours[boxes_len].append((index, self.labels[index]))
         self.boxes.append(box1)
         self.labels.append(shape)
 
@@ -958,49 +957,50 @@ class MainWindow(QtWidgets.QMainWindow):
             intersect = (right_line - left_line) * (bottom_line - top_line)
             return (intersect / (sum_area - intersect)) * 1.0
 
-
-    def addLabelToImg(self, shape,p_box = 0):
+    def addLabelToImg(self, shape, p_box=0):
         if p_box:
             p_box = p_box
         else:
             p_box = QPainter(self.canvas.pixmap)
         x_min, y_min, w, h = self.get_label_box(shape)
+        q_rectf = QRectF(x_min, y_min, w, h)
+        qpen = QPen()
+        qpen.setWidth(5)
+        # qpen.setColor(QColor(0, 255, 0))
+        p_box.setPen(qpen)
+        p_box.drawRect(q_rectf)
         font = QFont()
-        text_size = int(min(h,w)/len(shape.label))
+        text_size = min(h, int((w / len(shape.label)) * 0.7))
         font.setPointSize(text_size)
         p_box.setFont(font)
-        q_rectf = QRectF(x_min, y_min, w, h)
-        p_box.drawRect(q_rectf)
         p_box.drawText(q_rectf, Qt.AlignCenter | Qt.AlignTop, shape.label)
 
-    def get_label_box(self,shape):
+    def get_label_box(self, shape):
         x_min, y_min = shape.points[0].x(), shape.points[0].y()
         x_max, y_max = shape.points[1].x(), shape.points[1].y()
-        w,h = x_max-x_min,y_max-y_min
+        w, h = x_max - x_min, y_max - y_min
         x_min = x_min + self.alter[0] * self.alter[2]
         y_min = y_min + self.alter[1] * self.alter[3]
-        return x_min,y_min,w,h
-
-
+        return x_min, y_min, w, h
 
     def remLabel(self, shape):
         item = self.labelList.get_item_from_shape(shape)
         self.labelList.takeItem(self.labelList.row(item))
         self.remove_shape(shape)
 
-    def remove_shape(self,shape):
+    def remove_shape(self, shape):
         p_box = QPainter(self.canvas.pixmap)
         x_min, y_min, w, h = self.get_label_box(shape)
-        q_rectf = QRectF(x_min, y_min, w * 1.01, h * 1.01)
+        q_rectf = QRectF(x_min-w*0.05, y_min-h*0.05, w * 1.1, h * 1.1)
         p_box.eraseRect(q_rectf)
         box1 = (y_min, x_min, y_min + h, x_min + w)
-        box1_index =-1
-        for index,i in enumerate(self.boxes):
+        box1_index = -1
+        for index, i in enumerate(self.boxes):
             if i == box1:
                 box1_index = index
                 break
         neighbours = self.neighbours.copy()
-        for key,values in neighbours.items():
+        for key, values in neighbours.items():
             for value in values:
                 if value[0] == box1_index:
                     self.neighbours[key].remove(value)
@@ -1012,7 +1012,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # for action in self.actions.onShapesPresent:
         #     action.setEnabled(True)
         for i in self.neighbours[box1_index]:
-            self.addLabelToImg(i[1],p_box=p_box)
+            self.addLabelToImg(i[1], p_box=p_box)
 
     def loadShapes(self, shapes, replace=True):
         for shape in shapes:
