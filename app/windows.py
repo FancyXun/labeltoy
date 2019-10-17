@@ -101,7 +101,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.labelList.setDragDropMode(
             QtWidgets.QAbstractItemView.InternalMove)
         self.labelList.setParent(self)
-        self.shape_dock = QtWidgets.QDockWidget('Polygon Labels', self)
+        self.shape_dock = QtWidgets.QDockWidget('Rectangle Labels', self)
         self.shape_dock.setObjectName('Labels')
         self.shape_dock.setWidget(self.labelList)
 
@@ -230,12 +230,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
         close = action('&Close', self.closeFile, shortcuts['close'], 'close',
                        'Close current file')
-        color1 = action('Polygon &Line Color', self.chooseColor1,
+        color1 = action('Rectangle &Line Color', self.chooseColor1,
                         shortcuts['edit_line_color'], 'color_line',
-                        'Choose polygon line color')
-        color2 = action('Polygon &Fill Color', self.chooseColor2,
+                        'Choose Rectangle line color')
+        color2 = action('Rectangle &Fill Color', self.chooseColor2,
                         shortcuts['edit_fill_color'], 'color',
-                        'Choose polygon fill color')
+                        'Choose Rectangle fill color')
 
         toggle_keep_prev_mode = action(
             'Keep Previous Annotation',
@@ -246,14 +246,6 @@ class MainWindow(QtWidgets.QMainWindow):
         toggle_keep_prev_mode.setChecked(self._config['keep_prev'])
 
         createMode = action(
-            'Create Polygons',
-            lambda: self.toggleDrawMode(False, createMode='polygon'),
-            shortcuts['create_polygon'],
-            'objects',
-            'Start drawing polygons',
-            enabled=False,
-        )
-        createRectangleMode = action(
             'Create Rectangle',
             lambda: self.toggleDrawMode(False, createMode='rectangle'),
             shortcuts['create_rectangle'],
@@ -261,48 +253,17 @@ class MainWindow(QtWidgets.QMainWindow):
             'Start drawing rectangles',
             enabled=False,
         )
-        createCircleMode = action(
-            'Create Circle',
-            lambda: self.toggleDrawMode(False, createMode='circle'),
-            shortcuts['create_circle'],
-            'objects',
-            'Start drawing circles',
-            enabled=False,
-        )
-        createLineMode = action(
-            'Create Line',
-            lambda: self.toggleDrawMode(False, createMode='line'),
-            shortcuts['create_line'],
-            'objects',
-            'Start drawing lines',
-            enabled=False,
-        )
-        createPointMode = action(
-            'Create Point',
-            lambda: self.toggleDrawMode(False, createMode='point'),
-            shortcuts['create_point'],
-            'objects',
-            'Start drawing points',
-            enabled=False,
-        )
-        createLineStripMode = action(
-            'Create LineStrip',
-            lambda: self.toggleDrawMode(False, createMode='linestrip'),
-            shortcuts['create_linestrip'],
-            'objects',
-            'Start drawing linestrip. Ctrl+LeftClick ends creation.',
-            enabled=False,
-        )
-        editMode = action('Edit Polygons', self.setEditMode,
-                          shortcuts['edit_polygon'], 'edit',
-                          'Move and edit polygons', enabled=False)
 
-        delete = action('Delete Polygon', self.deleteSelectedShape,
+        editMode = action('Edit Rectangles', self.setEditMode,
+                          shortcuts['edit_polygon'], 'edit',
+                          'Move and edit rectangle', enabled=False)
+
+        delete = action('Delete Rectangle', self.deleteSelectedShape,
                         shortcuts['delete_polygon'], 'cancel',
                         'Delete', enabled=False)
-        copy = action('Duplicate Polygon', self.copySelectedShape,
+        copy = action('Duplicate Rectangle', self.copySelectedShape,
                       shortcuts['duplicate_polygon'], 'copy',
-                      'Create a duplicate of the selected polygon',
+                      'Create a duplicate of the selected Rectangle',
                       enabled=False)
         undoLastPoint = action('Undo last point', self.canvas.undoLastPoint,
                                shortcuts['undo_last_point'], 'undo',
@@ -314,12 +275,12 @@ class MainWindow(QtWidgets.QMainWindow):
         undo = action('Undo', self.undoShapeEdit, shortcuts['undo'], 'undo',
                       'Undo last add and edit of shape', enabled=False)
 
-        hideAll = action('&Hide\nPolygons',
+        hideAll = action('&Hide\nRectangles',
                          functools.partial(self.togglePolygons, False),
-                         icon='eye', tip='Hide all polygons', enabled=False)
-        showAll = action('&Show\nPolygons',
+                         icon='eye', tip='Hide all rectangles', enabled=False)
+        showAll = action('&Show\nRectangles',
                          functools.partial(self.togglePolygons, True),
-                         icon='eye', tip='Show all polygons', enabled=False)
+                         icon='eye', tip='Show all rectangles', enabled=False)
 
         help = action('&Tutorial', self.tutorial, icon='help',
                       tip='Show tutorial page')
@@ -371,7 +332,7 @@ class MainWindow(QtWidgets.QMainWindow):
         }
 
         edit = action('&Edit Label', self.editLabel, shortcuts['edit_label'],
-                      'edit', 'Modify the label of the selected polygon',
+                      'edit', 'Modify the label of the selected Rectangle',
                       enabled=False)
 
         shapeLineColor = action(
@@ -381,11 +342,11 @@ class MainWindow(QtWidgets.QMainWindow):
             'Shape &Fill Color', self.chshapeFillColor, icon='color',
             tip='Change the fill color for this specific shape', enabled=False)
         fill_drawing = action(
-            'Fill Drawing Polygon',
+            'Fill Drawing Rectangle',
             lambda x: self.canvas.setFillDrawing(x),
             None,
             'color',
-            'Fill polygon while drawing',
+            'Fill Rectangle while drawing',
             checkable=True,
             enabled=True,
         )
@@ -410,11 +371,6 @@ class MainWindow(QtWidgets.QMainWindow):
             undoLastPoint=undoLastPoint, undo=undo,
             addPoint=addPoint,
             createMode=createMode, editMode=editMode,
-            createRectangleMode=createRectangleMode,
-            createCircleMode=createCircleMode,
-            createLineMode=createLineMode,
-            createPointMode=createPointMode,
-            createLineStripMode=createLineStripMode,
             shapeLineColor=shapeLineColor, shapeFillColor=shapeFillColor,
             zoom=zoom, zoomIn=zoomIn, zoomOut=zoomOut, zoomOrg=zoomOrg,
             fitWindow=fitWindow, fitWidth=fitWidth,
@@ -427,11 +383,6 @@ class MainWindow(QtWidgets.QMainWindow):
             # menu shown at right click
             menu=(
                 createMode,
-                createRectangleMode,
-                createCircleMode,
-                createLineMode,
-                createPointMode,
-                createLineStripMode,
                 editMode,
                 edit,
                 copy,
@@ -445,11 +396,7 @@ class MainWindow(QtWidgets.QMainWindow):
             onLoadActive=(
                 close,
                 createMode,
-                createRectangleMode,
-                createCircleMode,
-                createLineMode,
-                createPointMode,
-                createLineStripMode,
+
                 editMode,
             ),
             onShapesPresent=(saveAs, hideAll, showAll),
@@ -640,11 +587,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.menus.edit.clear()
         actions = (
             self.actions.createMode,
-            self.actions.createRectangleMode,
-            self.actions.createCircleMode,
-            self.actions.createLineMode,
-            self.actions.createPointMode,
-            self.actions.createLineStripMode,
             self.actions.editMode,
         )
         utils.addActions(self.menus.edit, actions + self.actions.editMenu)
@@ -669,11 +611,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.dirty = False
         self.actions.save.setEnabled(False)
         self.actions.createMode.setEnabled(True)
-        self.actions.createRectangleMode.setEnabled(True)
-        self.actions.createCircleMode.setEnabled(True)
-        self.actions.createLineMode.setEnabled(True)
-        self.actions.createPointMode.setEnabled(True)
-        self.actions.createLineStripMode.setEnabled(True)
         title = __appname__
         if self.filename is not None:
             title = '{} - {}'.format(title, self.filename)
@@ -744,59 +681,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actions.undo.setEnabled(not drawing)
         self.actions.delete.setEnabled(not drawing)
 
-    def toggleDrawMode(self, edit=True, createMode='polygon'):
+    def toggleDrawMode(self, edit=True, createMode='rectangle'):
         self.canvas.setEditing(edit)
         self.canvas.createMode = createMode
         if edit:
             self.actions.createMode.setEnabled(True)
-            self.actions.createRectangleMode.setEnabled(True)
-            self.actions.createCircleMode.setEnabled(True)
-            self.actions.createLineMode.setEnabled(True)
-            self.actions.createPointMode.setEnabled(True)
-            self.actions.createLineStripMode.setEnabled(True)
         else:
-            if createMode == 'polygon':
+            if createMode == 'rectangle':
                 self.actions.createMode.setEnabled(False)
-                self.actions.createRectangleMode.setEnabled(True)
-                self.actions.createCircleMode.setEnabled(True)
-                self.actions.createLineMode.setEnabled(True)
-                self.actions.createPointMode.setEnabled(True)
-                self.actions.createLineStripMode.setEnabled(True)
-            elif createMode == 'rectangle':
-                self.actions.createMode.setEnabled(True)
-                self.actions.createRectangleMode.setEnabled(False)
-                self.actions.createCircleMode.setEnabled(True)
-                self.actions.createLineMode.setEnabled(True)
-                self.actions.createPointMode.setEnabled(True)
-                self.actions.createLineStripMode.setEnabled(True)
-            elif createMode == 'line':
-                self.actions.createMode.setEnabled(True)
-                self.actions.createRectangleMode.setEnabled(True)
-                self.actions.createCircleMode.setEnabled(True)
-                self.actions.createLineMode.setEnabled(False)
-                self.actions.createPointMode.setEnabled(True)
-                self.actions.createLineStripMode.setEnabled(True)
-            elif createMode == 'point':
-                self.actions.createMode.setEnabled(True)
-                self.actions.createRectangleMode.setEnabled(True)
-                self.actions.createCircleMode.setEnabled(True)
-                self.actions.createLineMode.setEnabled(True)
-                self.actions.createPointMode.setEnabled(False)
-                self.actions.createLineStripMode.setEnabled(True)
-            elif createMode == "circle":
-                self.actions.createMode.setEnabled(True)
-                self.actions.createRectangleMode.setEnabled(True)
-                self.actions.createCircleMode.setEnabled(False)
-                self.actions.createLineMode.setEnabled(True)
-                self.actions.createPointMode.setEnabled(True)
-                self.actions.createLineStripMode.setEnabled(True)
-            elif createMode == "linestrip":
-                self.actions.createMode.setEnabled(True)
-                self.actions.createRectangleMode.setEnabled(True)
-                self.actions.createCircleMode.setEnabled(True)
-                self.actions.createLineMode.setEnabled(True)
-                self.actions.createPointMode.setEnabled(True)
-                self.actions.createLineStripMode.setEnabled(False)
             else:
                 raise ValueError('Unsupported createMode: %s' % createMode)
         self.actions.editMode.setEnabled(not edit)
@@ -1599,7 +1491,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def deleteSelectedShape(self):
         yes, no = QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No
-        msg = 'You are about to permanently delete this polygon, ' \
+        msg = 'You are about to permanently delete this Rectangle, ' \
               'proceed anyway?'
         if yes == QtWidgets.QMessageBox.warning(self, 'Attention', msg,
                                                 yes | no):
