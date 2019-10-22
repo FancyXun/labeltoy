@@ -750,6 +750,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.uniqLabelList.sortItems()
         self.remove_shape(self.canvas.selectedShape)
         self.addLabel(self.canvas.selectedShape)
+        # self.addLabelToImg(self.canvas.selectedShape)
+        # self.add_box(self.canvas.selectedShape)
 
     def fileSearchChanged(self):
         self.importDirImages(
