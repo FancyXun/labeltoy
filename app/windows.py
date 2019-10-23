@@ -32,8 +32,26 @@ from PyQt5.QtGui import QPainter, QFont, QColor, QPen
 from PyQt5.QtCore import QRectF
 
 
+# def Singleton(cls):
+#     _instance = {}
+#
+#     def _singleton(**kargs):
+#         if cls not in _instance:
+#             _instance[cls] = cls(**kargs)
+#         return _instance[cls]
+#
+#     return _singleton
+#
+#
+# @Singleton
 class MainWindow(QtWidgets.QMainWindow):
     FIT_WINDOW, FIT_WIDTH, MANUAL_ZOOM = 0, 1, 2
+
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(MainWindow, "_instance"):
+            if not hasattr(MainWindow, "_instance"):
+                MainWindow._instance = QtWidgets.QMainWindow.__new__(cls)
+        return MainWindow._instance
 
     def __init__(
             self,
@@ -885,7 +903,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def remove_shape(self, shape):
         p_box = QPainter(self.canvas.pixmap)
         x_min, y_min, w, h = self.get_label_box(shape)
-        q_rectf = QRectF(x_min-w*0.05, y_min-h*0.05, w * 1.1, h * 1.1)
+        q_rectf = QRectF(x_min - w * 0.05, y_min - h * 0.05, w * 1.1, h * 1.1)
         p_box.eraseRect(q_rectf)
         box1 = (y_min, x_min, y_min + h, x_min + w)
         box1_index = -1

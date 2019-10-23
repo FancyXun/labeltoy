@@ -6,6 +6,8 @@ from app import QT5
 from shape import Shape
 import utils
 
+from app import main_window
+
 # TODO(unknown):
 # - [maybe] Find optimal epsilon value.
 
@@ -39,6 +41,7 @@ class Canvas(QtWidgets.QWidget):
         # Initialise local state.
         self.mode = self.EDIT
         self.shapes = []
+        self.preShapes = []
         self.shapesBackups = []
         self.current = None
         self.selectedShape = None  # save the selected shape here
@@ -259,9 +262,28 @@ class Canvas(QtWidgets.QWidget):
             self.hVertex, self.hShape, self.hEdge = None, None, None
         self.edgeSelected.emit(self.hEdge is not None)
 
-    @staticmethod
-    def compare(points1, points2):
-        pass
+    def compare(self):
+        # compare shape and previous shapes
+        shapes = self.shapesBackups
+        if len(shapes) < 2:
+            return False
+        elif len(shapes[-2]) == len(shapes[-1]):
+            for shape in zip(shapes[-2], shapes[-1]):
+                x_min1 = shape[0].points[0].x()
+                x_min2 = shape[1].points[0].x()
+                if x_min1 != x_min2:
+                    try:
+                        from app.windows import MainWindow
+                        main_window = MainWindow()
+                    except:
+                        pass
+                    main_window.remove_shape(shape[0])
+                    main_window.addLabelToImg(shape[1])
+                    main_window.add_box(shape[1])
+                    # print(shape[0].points, shape[1].points)
+                    # print(main_window)
+        else:
+            return False
 
     def addPointToEdge(self):
         if (self.hShape is None and
@@ -336,6 +358,7 @@ class Canvas(QtWidgets.QWidget):
         if self.movingShape:
             self.storeShapes()
             self.shapeMoved.emit()
+            self.compare()
 
     def endMove(self, copy=False):
         assert self.selectedShape and self.selectedShapeCopy

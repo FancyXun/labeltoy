@@ -4,6 +4,7 @@ import sys
 
 from qtpy import QT_VERSION
 
+main_window = None
 __appname__ = 'labeltoy'
 
 __version__ = '0.0.1'
