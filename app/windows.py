@@ -904,10 +904,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.labelList.takeItem(self.labelList.row(item))
         self.remove_shape(shape)
 
-    def remove_shape(self, shape, flag=0):
+    def remove_shape(self, shape):
         p_box = QPainter(self.canvas.pixmap)
         x_min, y_min, w, h = self.get_label_box(shape)
-        q_rectf = QRectF(x_min - w * 0.05, y_min - h * 0.05, w * 1.1, h * 1.1)
+        # todo 优化擦除方框
+        # q_rectf = QRectF(x_min - w * 0.05, y_min - h * 0.05, w * 1.1, h * 1.1)
+
+        erase_x = x_min - w * 0.01
+        erase_y = y_min - h * 0.01
+        erase_w = w * 1.05
+        erase_h = h * 1.05
+        q_rectf = QRectF(erase_x, erase_y, erase_w, erase_h)
+        # q_rectf = QRectF(x_min, y_min, w, h)
         p_box.eraseRect(q_rectf)
         # remove box
         box1 = (y_min, x_min, y_min + h, x_min + w)

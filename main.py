@@ -12,7 +12,6 @@ from app.windows import MainWindow
 from config import get_config
 import glog as log
 from utils import newIcon
-from app import main_window
 
 
 def main():
@@ -155,7 +154,6 @@ def _main():
         output_file=output_file,
         output_dir=output_dir,
     )
-    main_window = win
 
     if reset_config:
         log.info('Resetting Qt config: %s' % win.settings.fileName())

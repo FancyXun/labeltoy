@@ -6,7 +6,6 @@ from app import QT5
 from shape import Shape
 import utils
 
-from app import main_window
 
 # TODO(unknown):
 # - [maybe] Find optimal epsilon value.
@@ -181,15 +180,6 @@ class Canvas(QtWidgets.QWidget):
             elif self.createMode == 'rectangle':
                 self.line.points = [self.current[0], pos]
                 self.line.close()
-            elif self.createMode == 'circle':
-                self.line.points = [self.current[0], pos]
-                self.line.shape_type = "circle"
-            elif self.createMode == 'line':
-                self.line.points = [self.current[0], pos]
-                self.line.close()
-            elif self.createMode == 'point':
-                self.line.points = [self.current[0]]
-                self.line.close()
             self.line.line_color = color
             self.repaint()
             self.current.highlightClear()
@@ -269,9 +259,9 @@ class Canvas(QtWidgets.QWidget):
             return False
         elif len(shapes[-2]) == len(shapes[-1]):
             for shape in zip(shapes[-2], shapes[-1]):
-                x_min1 = shape[0].points[0].x()
-                x_min2 = shape[1].points[0].x()
-                if x_min1 != x_min2:
+                x_min1, x_max1 = shape[0].points[0].x(), shape[0].points[1].x()
+                x_min2, x_max2 = shape[1].points[0].x(), shape[1].points[1].x()
+                if x_min1 != x_min2 or x_max1 != x_max2:
                     try:
                         from app.windows import MainWindow
                         main_window = MainWindow()
@@ -307,21 +297,10 @@ class Canvas(QtWidgets.QWidget):
         if ev.button() == QtCore.Qt.LeftButton:
             if self.drawing():
                 if self.current:
-                    # Add point to existing shape.
-                    if self.createMode == 'polygon':
-                        self.current.addPoint(self.line[1])
-                        self.line[0] = self.current[-1]
-                        if self.current.isClosed():
-                            self.finalise()
-                    elif self.createMode in ['rectangle', 'circle', 'line']:
+                    if self.createMode == 'rectangle':
                         assert len(self.current.points) == 1
                         self.current.points = self.line.points
                         self.finalise()
-                    elif self.createMode == 'linestrip':
-                        self.current.addPoint(self.line[1])
-                        self.line[0] = self.current[-1]
-                        if int(ev.modifiers()) == QtCore.Qt.ControlModifier:
-                            self.finalise()
                 elif not self.outOfPixmap(pos):
                     # Create new shape.
                     self.current = Shape(shape_type=self.createMode)
