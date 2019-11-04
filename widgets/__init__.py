@@ -1,5 +1,3 @@
-# flake8: noqa
-
 from .canvas import Canvas
 
 from .color_dialog import ColorDialog

@@ -1,10 +1,9 @@
 import os.path as osp
-
 import numpy as np
 import PIL.Image
 
-from labelme.logger import logger
-from labelme.utils.draw import label_colormap
+from utils.draw import label_colormap
+from utils.logger import logger
 
 
 def lblsave(filename, lbl):
